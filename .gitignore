@@ -1,4 +1,5 @@
 .DS_Store
+.snakemake
 samples/
 results/
 raw_sequencing_reads/
