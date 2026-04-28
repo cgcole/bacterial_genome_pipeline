@@ -1,0 +1,27 @@
+Assuming unrestricted shared filesystem usage.
+host: Codys-MacBook-Pro.local
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 6
+Rules claiming more threads will be scaled down.
+Job stats:
+job                     count
+--------------------  -------
+fastp_qc_short_reads        1
+total                       1
+
+Select jobs to execute...
+Execute 1 jobs...
+[Fri Nov 28 10:32:34 2025]
+localrule fastp_qc_short_reads:
+    input: raw_sequencing_reads/20240419-Cody-BpSCSK_R1.fastq.gz, raw_sequencing_reads/20240419-Cody-BpSCSK_R2.fastq.gz
+    output: results/20240419-Cody/BpSCSK/qc/fastp, results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R1_clean.fastq.gz, results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R2_clean.fastq.gz, results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R1_unpaired.fastq.gz, results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R2_unpaired.fastq.gz, results/20240419-Cody/BpSCSK/logs, results/20240419-Cody/BpSCSK/logs/BpSCSK_fastp_report.html, results/20240419-Cody/BpSCSK/logs/BpSCSK_fastp_report.json
+    log: results/20240419-Cody/BpSCSK/logs/BpSCSK_fastp.log
+    jobid: 0
+    reason: Missing output files: results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R2_clean.fastq.gz, results/20240419-Cody/BpSCSK/qc/fastp/BpSCSK_R1_clean.fastq.gz
+    threads: 4
+    resources: tmpdir=/var/folders/cd/bcwbsqjx6mx4y7gq66n0mdm80000gn/T
+[Fri Nov 28 10:32:55 2025]
+Finished jobid: 0 (Rule: fastp_qc_short_reads)
+1 of 1 steps (100%) done
+Complete log(s): /Users/codycole/github/bacterial_genome_pipeline/.snakemake/log/2025-11-28T103234.073529.snakemake.log

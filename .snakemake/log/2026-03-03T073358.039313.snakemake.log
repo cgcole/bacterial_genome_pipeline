@@ -1,0 +1,25 @@
+Assuming unrestricted shared filesystem usage.
+host: MacBook-Pro-4.local
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                count
+-------------------------------  -------
+Autocycler_hybrid_assembly             1
+all                                    1
+polypolish_short_read_polishing        1
+total                                  3
+
+Select jobs to execute...
+Execute 1 jobs...
+[Tue Mar  3 07:33:58 2026]
+localrule Autocycler_hybrid_assembly:
+    input: results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz
+    output: results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta
+    log: results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+    jobid: 3
+    reason: Missing output files: results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta
+    threads: 4
+    resources: tmpdir=/var/folders/cd/bcwbsqjx6mx4y7gq66n0mdm80000gn/T

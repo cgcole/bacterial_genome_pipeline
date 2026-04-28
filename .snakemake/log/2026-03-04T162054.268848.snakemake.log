@@ -1,0 +1,39 @@
+Assuming unrestricted shared filesystem usage.
+host: MacBook-Pro-4.local
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                count
+-------------------------------  -------
+all                                    1
+polypolish_short_read_polishing        1
+total                                  2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar  4 16:20:54 2026]
+localrule polypolish_short_read_polishing:
+    input: results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta, results/20240419-Cody/BpKH6/qc/fastp/BpKH6_R1_clean.fastq.gz, results/20240419-Cody/BpKH6/qc/fastp/BpKH6_R2_clean.fastq.gz
+    output: results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_R1_alignment.sam, results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_R2_alignment.sam, results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_R1_alignment_filtered.sam, results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_R2_alignment_filtered.sam, results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_polypolish.fasta
+    log: results/20240419-Cody/BpKH6/logs/BpKH6_Polypolish.log
+    jobid: 4
+    reason: Missing output files: results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_polypolish.fasta
+    threads: 4
+    resources: tmpdir=/var/folders/cd/bcwbsqjx6mx4y7gq66n0mdm80000gn/T
+[Wed Mar  4 19:06:40 2026]
+Finished jobid: 4 (Rule: polypolish_short_read_polishing)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Mar  4 19:06:40 2026]
+localrule all:
+    input: results/20240419-Cody/BpKH6/qc/fastp/BpKH6_R1_clean.fastq.gz, results/20240419-Cody/BpKH6/qc/fastp/BpKH6_R2_clean.fastq.gz, results/20240419-Cody/BpKH6/logs/BpKH6_fastp_report.html, results/20240419-Cody/BpKH6/logs/BpKH6_fastp_report.json, results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz, results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta, results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_polypolish.fasta
+    jobid: 0
+    reason: Input files updated by another job: results/20240419-Cody/BpKH6/qc/Polypolish/BpKH6_polypolish.fasta
+    resources: tmpdir=/var/folders/cd/bcwbsqjx6mx4y7gq66n0mdm80000gn/T
+[Wed Mar  4 19:06:40 2026]
+Finished jobid: 0 (Rule: all)
+2 of 2 steps (100%) done
+Complete log(s): /Users/codycole/github/bacterial_genome_pipeline/.snakemake/log/2026-03-04T162054.268848.snakemake.log

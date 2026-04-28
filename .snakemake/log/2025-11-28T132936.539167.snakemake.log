@@ -1,0 +1,7 @@
+Assuming unrestricted shared filesystem usage.
+host: Codys-MacBook-Pro.local
+Building DAG of jobs...
+MissingInputException in rule all in file "/Users/codycole/github/bacterial_genome_pipeline/Snakefile", line 3:
+Missing input files for rule all:
+    affected files:
+        results/20240419-Cody/BpSCSK/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa

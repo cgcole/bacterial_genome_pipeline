@@ -1,0 +1,9 @@
+.DS_Store
+samples/
+results/
+raw_sequencing_reads/
+bioproject_metadata/
+test_folder/
+__pycache__/
+*.pyc
+

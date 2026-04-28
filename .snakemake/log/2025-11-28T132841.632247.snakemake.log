@@ -1,0 +1,3 @@
+SyntaxError in file "/Users/codycole/github/bacterial_genome_pipeline/Snakefile", line 28:
+Expected name or colon after rule or checkpoint keyword. The keyword rule has a special meaning in Snakemake. If you named a variable or function like this, please rename it to avoid the conflict.:
+None

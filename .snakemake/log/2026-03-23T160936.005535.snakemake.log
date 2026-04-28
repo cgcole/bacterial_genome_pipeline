@@ -1,0 +1,211 @@
+Assuming unrestricted shared filesystem usage.
+host: MacBook-Pro-4.local
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                                count
+-------------------------------  -------
+Autocycler_hybrid_assembly             2
+all                                    1
+assembly_stats                         3
+polypolish_short_read_polishing        2
+total                                  8
+
+Select jobs to execute...
+Failed to solve scheduling problem with ILP solver, falling back to greedy scheduler. You likely have to fix your ILP solver installation. Error message: PULP_CBC_CMD: Not Available (check permissions on cbc)
+Execute 1 jobs...
+[Mon Mar 23 16:09:38 2026]
+localrule Autocycler_hybrid_assembly:
+    input: results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz
+    output: results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta
+    log: results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+    jobid: 8
+    reason: Code has changed since last execution
+    wildcards: library_ID=20240419-Cody, sample=BpKH6
+    threads: 4
+    resources: tmpdir=/var/folders/cd/bcwbsqjx6mx4y7gq66n0mdm80000gn/T
+Select jobs to execute...
+Terminating processes on user request, this might take some time.
+RuleException:
+CalledProcessError in file "/Users/codycole/github/bacterial_genome_pipeline/Snakefile", line 76:
+Command 'set -euo pipefail;  
+        #!/usr/bin/env bash
+
+        # This script is a wrapper for running a fully-automated Autocycler assembly.
+
+        # Usage:
+        #   autocycler_full.sh <read_fastq> <threads> <jobs>
+
+        # Copyright 2025 Ryan Wick (rrwick@gmail.com)
+        # Licensed under the GNU General Public License v3.
+        # See https://www.gnu.org/licenses/gpl-3.0.html.
+
+        # Ensure script exits on error.
+        set -e
+
+        # Get arguments.
+        reads=results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz                 # input reads FASTQ
+        threads=4             # threads per job
+        jobs=1                 # number of simultaneous jobs
+        read_type="ont_r10"  # read type (default = ont_r10)
+
+        # Input assembly jobs that exceed this time limit will be killed
+        max_time="30h"
+
+        # Validate input parameters
+        if [[ -z "$reads" || -z "$threads" || -z "$jobs" ]]; then
+            echo "Usage: $0 <read_fastq> <threads> <jobs> [read_type]" 1>&2
+            exit 1
+        fi
+        if [[ ! -f "$reads" ]]; then
+            echo "Error: Input file '$reads' does not exist." 1>&2
+            exit 1
+        fi
+        if (( threads > 128 )); then threads=128; fi  # Flye won't work with more than 128 threads
+
+        case $read_type in
+            ont_r9|ont_r10|pacbio_clr|pacbio_hifi) ;;
+            *) echo "Error: read_type must be ont_r9, ont_r10, pacbio_clr or pacbio_hifi" 1>&2; exit 1 ;;
+        esac
+
+        genome_size=$(autocycler helper genome_size --reads "$reads" --threads "$threads")
+
+        # Step 1: subsample the long-read set into multiple files
+        mkdir -p results/20240419-Cody/BpKH6/assembly/Autocycler
+        autocycler subsample --reads "$reads" --out_dir results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads --genome_size "$genome_size" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Step 2: assemble each subsampled file (myloasm and nextdenovo requre linux)
+        mkdir -p results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies
+        for assembler in raven myloasm miniasm flye metamdbg necat nextdenovo plassembler canu; do
+            for i in 01 02 03 04; do
+                autocycler helper "$assembler" --reads results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads/sample_"$i".fastq --out_prefix results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/"$assembler"_"$i" --threads "$threads" --genome_size "$genome_size" --min_depth_rel 0.1
+            done
+        done
+
+        # Give circular contigs from Plassembler extra clustering weight
+        shopt -s nullglob
+        for f in results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/plassembler*.fasta; do
+            perl -i -pe 's/circular=True/circular=True Autocycler_cluster_weight=3/' "$f"
+        done
+
+        # Give contigs from Canu and Flye extra consensus weight
+        for f in results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/canu*.fasta results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/flye*.fasta; do
+            perl -i -pe 's/^(>.*)$/$1 Autocycler_consensus_weight=2/' "$f"
+        done
+        shopt -u nullglob
+
+        # Remove the subsampled reads to save space
+        #rm results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads/*.fastq
+
+        # Step 3: compress the input assemblies into a unitig graph
+        autocycler compress -i results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Step 4: cluster the input contigs into putative genomic sequences
+        autocycler cluster -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Steps 5 and 6: trim and resolve each QC-pass cluster
+        for c in results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*; do
+            autocycler trim -c "$c" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+            autocycler resolve -c "$c" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+        done
+
+        # Step 7: combine resolved clusters into a final assembly
+        autocycler combine -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out -i results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log' died with <Signals.SIGINT: 2>.
+[Mon Mar 23 16:09:47 2026]
+Error in rule Autocycler_hybrid_assembly:
+    message: None
+    jobid: 8
+    input: results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz
+    output: results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/consensus_assembly.fasta
+    log: results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log (check log file(s) for error details)
+    shell:
+        
+        #!/usr/bin/env bash
+
+        # This script is a wrapper for running a fully-automated Autocycler assembly.
+
+        # Usage:
+        #   autocycler_full.sh <read_fastq> <threads> <jobs>
+
+        # Copyright 2025 Ryan Wick (rrwick@gmail.com)
+        # Licensed under the GNU General Public License v3.
+        # See https://www.gnu.org/licenses/gpl-3.0.html.
+
+        # Ensure script exits on error.
+        set -e
+
+        # Get arguments.
+        reads=results/20240419-Cody/BpKH6/qc/Filtlong/BpKH6_long_clean.fastq.gz                 # input reads FASTQ
+        threads=4             # threads per job
+        jobs=1                 # number of simultaneous jobs
+        read_type="ont_r10"  # read type (default = ont_r10)
+
+        # Input assembly jobs that exceed this time limit will be killed
+        max_time="30h"
+
+        # Validate input parameters
+        if [[ -z "$reads" || -z "$threads" || -z "$jobs" ]]; then
+            echo "Usage: $0 <read_fastq> <threads> <jobs> [read_type]" 1>&2
+            exit 1
+        fi
+        if [[ ! -f "$reads" ]]; then
+            echo "Error: Input file '$reads' does not exist." 1>&2
+            exit 1
+        fi
+        if (( threads > 128 )); then threads=128; fi  # Flye won't work with more than 128 threads
+
+        case $read_type in
+            ont_r9|ont_r10|pacbio_clr|pacbio_hifi) ;;
+            *) echo "Error: read_type must be ont_r9, ont_r10, pacbio_clr or pacbio_hifi" 1>&2; exit 1 ;;
+        esac
+
+        genome_size=$(autocycler helper genome_size --reads "$reads" --threads "$threads")
+
+        # Step 1: subsample the long-read set into multiple files
+        mkdir -p results/20240419-Cody/BpKH6/assembly/Autocycler
+        autocycler subsample --reads "$reads" --out_dir results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads --genome_size "$genome_size" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Step 2: assemble each subsampled file (myloasm and nextdenovo requre linux)
+        mkdir -p results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies
+        for assembler in raven myloasm miniasm flye metamdbg necat nextdenovo plassembler canu; do
+            for i in 01 02 03 04; do
+                autocycler helper "$assembler" --reads results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads/sample_"$i".fastq --out_prefix results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/"$assembler"_"$i" --threads "$threads" --genome_size "$genome_size" --min_depth_rel 0.1
+            done
+        done
+
+        # Give circular contigs from Plassembler extra clustering weight
+        shopt -s nullglob
+        for f in results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/plassembler*.fasta; do
+            perl -i -pe 's/circular=True/circular=True Autocycler_cluster_weight=3/' "$f"
+        done
+
+        # Give contigs from Canu and Flye extra consensus weight
+        for f in results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/canu*.fasta results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies/flye*.fasta; do
+            perl -i -pe 's/^(>.*)$/$1 Autocycler_consensus_weight=2/' "$f"
+        done
+        shopt -u nullglob
+
+        # Remove the subsampled reads to save space
+        #rm results/20240419-Cody/BpKH6/assembly/Autocycler/subsampled_reads/*.fastq
+
+        # Step 3: compress the input assemblies into a unitig graph
+        autocycler compress -i results/20240419-Cody/BpKH6/assembly/Autocycler/input_assemblies -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Step 4: cluster the input contigs into putative genomic sequences
+        autocycler cluster -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+
+        # Steps 5 and 6: trim and resolve each QC-pass cluster
+        for c in results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*; do
+            autocycler trim -c "$c" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+            autocycler resolve -c "$c" 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+        done
+
+        # Step 7: combine resolved clusters into a final assembly
+        autocycler combine -a results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out -i results/20240419-Cody/BpKH6/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> results/20240419-Cody/BpKH6/logs/BpKH6_Autocycler.log
+        
+        (command exited with non-zero exit code)
+Complete log(s): /Users/codycole/github/bacterial_genome_pipeline/.snakemake/log/2026-03-23T160936.005535.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.
