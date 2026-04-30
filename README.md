@@ -37,6 +37,13 @@ python scripts/bioproject_metadata_parser.py PRJNAXXXXXX
 bash scripts/download_bioproject_reads.sh --samples samples/hybrid_assembly/bioproject_hybrid_samples.csv --threads 1
 ```
 
+### Downloading raw sequencing reads for BioProjects on a cluster
+```bash
+mkdir -p logs raw_sequencing_reads
+NSAMPLES=$(( $(wc -l < samples.csv) - 1 ))
+qsub -t 1-${NSAMPLES} download_reads.sh
+```
+
 ### Assembling genomes with Snakemake
 ```bash
 snakemake --cores x
@@ -49,4 +56,5 @@ snakemake \
     --default-resources slurm_partition=general mem_mb=16000 runtime=120 \
     --jobs 100
 ```
+
 

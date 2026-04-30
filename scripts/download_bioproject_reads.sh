@@ -1,58 +1,81 @@
 #!/usr/bin/env bash
 
 usage() {
-    echo "Usage: $0 --threads <int> --samples <file>"
-    echo "  --threads    Number of threads to use (default: 1)"
+    echo "Usage: $0 --threads <int> --samples <file> --outdir <dir>"
+    echo "  --threads    Threads per job (default: 4)"
     echo "  --samples    Path to samples CSV file"
+    echo "  --outdir     Output directory for reads (default: raw_sequencing_reads)"
     exit 1
 }
 
-download_bioproject_reads() {
-    local threads=$1
-    local samples=$2
+# ── If running as a cluster array task, skip straight to download ──
+if [ -n "$SGE_TASK_ID" ]; then
 
-    while IFS=',' read -r BioSample BioProject sample library_ID short_R1_filename short_R2_filename long_filename; do
+    if [ -z "$SAMPLES" ] || [ -z "$READS_DIR" ] || [ -z "$THREADS" ]; then
+        echo "Error: SAMPLES, READS_DIR, and THREADS must be set" >&2
+        exit 1
+    fi
 
-        if [ ! -f "raw_sequencing_reads/${long_filename}" ]; then
-            echo "Downloading long reads for $sample"
-            fasterq-dump ${long_filename%.fastq.gz} --outdir raw_sequencing_reads --threads $threads
-            gzip "raw_sequencing_reads/${long_filename%.gz}"
-        else
-            echo "Skipping long reads for $sample, already downloaded"
-        fi
+    IFS=',' read -r BioSample BioProject sample library_ID short_R1 short_R2 long_file \
+        < <(sed -n "$((SGE_TASK_ID + 1))p" "$SAMPLES")
 
-        if [ ! -f "raw_sequencing_reads/${short_R1_filename}" ] || \
-           [ ! -f "raw_sequencing_reads/${short_R2_filename}" ]; then
-            echo "Downloading short reads for $sample"
-            fasterq-dump --split-files ${short_R1_filename%_1.fastq.gz} --outdir raw_sequencing_reads --threads $threads
-            gzip "raw_sequencing_reads/${short_R1_filename%.gz}"
-            gzip "raw_sequencing_reads/${short_R2_filename%.gz}"
-        else
-            echo "Skipping short reads for $sample, already downloaded"
-        fi
+    if [ ! -f "${READS_DIR}/${long_file}" ]; then
+        echo "Downloading long reads for $sample"
+        fasterq-dump "${long_file%.fastq.gz}" \
+            --outdir "$READS_DIR" \
+            --threads "$THREADS" && \
+        pigz -p "$THREADS" "${READS_DIR}/${long_file%.gz}"
+    else
+        echo "Skipping long reads for $sample, already downloaded"
+    fi
 
-    done < <(tail -n +2 "$samples")
-}
+    if [ ! -f "${READS_DIR}/${short_R1}" ] || [ ! -f "${READS_DIR}/${short_R2}" ]; then
+        echo "Downloading short reads for $sample"
+        fasterq-dump --split-files "${short_R1%_1.fastq.gz}" \
+            --outdir "$READS_DIR" \
+            --threads "$THREADS" && \
+        pigz -p "$THREADS" \
+            "${READS_DIR}/${short_R1%.gz}" \
+            "${READS_DIR}/${short_R2%.gz}"
+    else
+        echo "Skipping short reads for $sample, already downloaded"
+    fi
 
-# Defaults
-threads=1
+    exit 0
+fi
+
+# ── Otherwise, parse arguments and submit or run locally ──
+threads=4
 samples=""
+outdir="raw_sequencing_reads"
 
-# Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --threads) threads="$2"; shift ;;
         --samples) samples="$2"; shift ;;
+        --outdir)  outdir="$2";  shift ;;
         -h|--help) usage ;;
         *) echo "Unknown argument: $1"; usage ;;
     esac
     shift
 done
 
-# Validate
 if [ -z "$samples" ]; then
     echo "Error: --samples is required"
     usage
 fi
 
-download_bioproject_reads "$threads" "$samples"
+NSAMPLES=$(( $(wc -l < "$samples") - 1 ))
+mkdir -p logs "$outdir"
+
+if command -v qsub &>/dev/null; then
+    echo "Submitting $NSAMPLES jobs to cluster..."
+    qsub -t 1-${NSAMPLES} \
+         -pe smp "$threads" \
+         -v SAMPLES="$(realpath $samples)",READS_DIR="$(realpath $outdir)",THREADS="$threads" \
+         "$0"    # passes this script itself to qsub
+else
+    echo "No cluster detected, running locally with max 10 parallel jobs..."
+    seq 1 $NSAMPLES | parallel -j 10 \
+        SAMPLES="$samples" READS_DIR="$outdir" THREADS="$threads" SGE_TASK_ID={} bash "$0"
+fi
