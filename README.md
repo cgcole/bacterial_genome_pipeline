@@ -16,7 +16,7 @@ This pipeline can be used to hybrid assemble short and long read whole genome se
 
 2. Create and activate the conda environment:
 ```bash
-    conda env create -f environment.yaml
+    conda env create -f envs/environment.yaml
     conda activate bacterial_genome_pipeline
 ```
 

@@ -62,7 +62,7 @@ def parse_bioproject_metadata(bioproject):
             ),
         )
         .groupby(["BioSample", "LibraryLayout"])
-        .apply(lambda x: x.nlargest(1, "bases"))
+        .apply(lambda x: x.nlargest(1, "bases"), include_groups=False)
         .reset_index()
         .assign(
             sample=lambda x: x["SampleName"].str.replace(r"[-\s.]", "_", regex=True),

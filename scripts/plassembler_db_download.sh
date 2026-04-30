@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Must be run AFTER initiating conda environment
+set -euo pipefail
 
-mkdir -p "$CONDA_PREFIX/etc/conda/activate.d"
-
-cat << 'EOF' > "$CONDA_PREFIX/etc/conda/activate.d/plassembler_db.sh"
-#!/bin/bash
-if [ ! -d "$CONDA_PREFIX/plassembler_db" ]; then
-    echo "Downloading Plassembler DB into $CONDA_PREFIX/plassembler_db ..."
-    plassembler download -d "$CONDA_PREFIX/plassembler_db"
+if [[ -z "${CONDA_PREFIX:-}" ]]; then
+    echo "Error: No active conda environment detected. Activate one first." >&2
+    exit 1
 fi
-EOF
 
-chmod +x "$CONDA_PREFIX/etc/conda/activate.d/plassembler_db.sh"
+DB_DIR="$CONDA_PREFIX/plassembler_db"
+
+if [[ ! -d "$DB_DIR" ]]; then
+    echo "Downloading Plassembler DB to $DB_DIR ..."
+    plassembler download -d "$DB_DIR"
+else
+    echo "Plassembler DB already exists at $DB_DIR, skipping download."
+fi
