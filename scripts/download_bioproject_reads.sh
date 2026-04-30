@@ -71,7 +71,7 @@ mkdir -p logs "$outdir"
 if command -v qsub &>/dev/null; then
     echo "Submitting $NSAMPLES jobs to cluster..."
     qsub -t 1-${NSAMPLES} \
-         -pe smp "$threads" \
+         -pe def_slot "$threads" \
          -v SAMPLES="$(realpath $samples)",READS_DIR="$(realpath $outdir)",THREADS="$threads" \
          "$0"    # passes this script itself to qsub
 else
