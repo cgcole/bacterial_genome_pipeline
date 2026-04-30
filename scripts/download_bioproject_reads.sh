@@ -11,7 +11,7 @@ download_bioproject_reads() {
     local threads=$1
     local samples=$2
 
-    while IFS=',' read -r BioSample sample library_ID short_R1_filename short_R2_filename long_filename; do
+    while IFS=',' read -r BioSample BioProject sample library_ID short_R1_filename short_R2_filename long_filename; do
 
         if [ ! -f "raw_sequencing_reads/${long_filename}" ]; then
             echo "Downloading long reads for $sample"

@@ -34,7 +34,7 @@ python scripts/bioproject_metadata_parser.py PRJNAXXXXXX
 
 ### Downloading raw sequencing reads for BioProjects
 ```bash
-bash scripts/download_bioproject_reads.sh --threads  --samples samples/hybrid_assembly/bioproject_hybrid_samples.csv
+bash scripts/download_bioproject_reads.sh --samples samples/hybrid_assembly/bioproject_hybrid_samples.csv --threads 1
 ```
 
 ### Assembling genomes with Snakemake
