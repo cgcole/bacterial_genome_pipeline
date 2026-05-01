@@ -205,7 +205,6 @@ rule assembly_stats:
         mem_gb=config["assembly_stats"]["mem_gb"],
         runtime=config["assembly_stats"]["runtime"]
     input:
-        assembly_dir=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler"),
         consensus=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"),
         polished_consensus_assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_polypolish.fasta")
     output:

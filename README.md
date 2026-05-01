@@ -71,7 +71,7 @@ snakemake \
 
 ### Real run on the HPC cluster:
 snakemake \
-  --snakefile workflow/Snakefile \
+  --snakefile workflows/hybrid_assembly/Snakefile \
   --executor cluster-generic \
   --cluster-generic-submit-cmd "qsub -S /bin/bash -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime}:00 -o logs/{rule}.out -j y" \
   --jobs 50 \
