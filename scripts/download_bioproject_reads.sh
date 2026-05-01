@@ -1,4 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#$ -l s_vmem=4G  # or whatever resources you need
+#$ -l h_rt=12:00:00
+#$ -o logs/download.$TASK_ID.out
+#$ -e logs/download.$TASK_ID.err
+#$ -j y   # or merge stdout and stderr into one file
+
+source /home/cgcole/miniforge3/etc/profile.d/conda.sh
+conda activate bacterial_genome_pipeline
+
 
 usage() {
     echo "Usage: $0 --threads <int> --samples <file> --outdir <dir>"
