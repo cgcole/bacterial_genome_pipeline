@@ -1,0 +1,60 @@
+import pandas as pd
+import os
+
+# ── Config ───────────────────────────────────────────────────────────────────
+configfile: "workflows/download_bioproject_reads/config.yaml"
+
+READS_DIR = config["reads_dir"]
+samples = pd.read_csv(config["samples"])
+short_accessions = samples["short_R1_filename"].str.replace("_1.fastq.gz", "", regex=False)
+long_accessions = samples["long_filename"].str.replace(".fastq.gz", "", regex=False)
+
+# ── Target rule ──────────────────────────────────────────────────────────────
+rule all:
+    input:
+        expand(os.path.join(READS_DIR, "{long_accession}.fastq.gz"), long_accession=long_accessions),
+        expand(os.path.join(READS_DIR, "{short_accession}_1.fastq.gz"), short_accession=short_accessions),
+        expand(os.path.join(READS_DIR, "{short_accession}_2.fastq.gz"), short_accession=short_accessions)
+
+# ── Download long reads ───────────────────────────────────────────────────────
+rule download_long_reads:
+    conda: "../../envs/environment.yaml"
+    output:
+        os.path.join(READS_DIR, "{long_accession}.fastq.gz")
+    wildcard_constraints:
+        long_accession="[A-Z0-9]+"  # only uppercase letters and numbers, no underscores
+    threads: config["threads"]
+    resources:
+        mem_gb=config["mem_gb"],
+        runtime=config["runtime"]
+    log:
+        "logs/reads/{long_accession}_long.log"
+    shell:
+        """
+        fasterq-dump {wildcards.long_accession} \
+            --outdir {READS_DIR} \
+            --threads {threads} 2>> {log} && \
+        pigz -p {threads} {READS_DIR}/{wildcards.long_accession}.fastq 2>> {log}
+        """
+
+# ── Download short reads ──────────────────────────────────────────────────────
+rule download_short_reads:
+    conda: "../../envs/environment.yaml"
+    output:
+        r1=os.path.join(READS_DIR, "{short_accession}_1.fastq.gz"),
+        r2=os.path.join(READS_DIR, "{short_accession}_2.fastq.gz")
+    threads: config["threads"]
+    resources:
+        mem_gb=config["mem_gb"],
+        runtime=config["runtime"]
+    log:
+        "logs/reads/{short_accession}_short.log"
+    shell:
+        """
+        fasterq-dump --split-files {wildcards.short_accession} \
+            --outdir {READS_DIR} \
+            --threads {threads} 2>> {log} && \
+        pigz -p {threads} \
+            {READS_DIR}/{wildcards.short_accession}_1.fastq \
+            {READS_DIR}/{wildcards.short_accession}_2.fastq 2>> {log}
+        """

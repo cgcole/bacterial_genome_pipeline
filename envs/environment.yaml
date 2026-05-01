@@ -5,8 +5,7 @@ channels:
 dependencies:
   - python>=3.12.0
   - snakemake=9.13.7
-  - snakemake-executor-plugin-slurm=1.4.0
-  - snakemake-executor-plugin-slurm-jobstep=0.3.0
+  - snakemake-executor-plugin-cluster-generic>=1.0.9
   - pigz>=2.8
   - fastp=1.0.1
   - filtlong=0.3.1
