@@ -212,12 +212,13 @@ rule assembly_stats:
     log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_assembly_stats.log")
     shell:
         """
+        assembly_dir=$(dirname $(dirname {input.consensus}))
         assembly_date=$(date +%Y%m%d)
         assembler_version=$(autocycler --version)
 
         echo -e "path\tinput_read_count\tinput_read_bases\tinput_read_n50\tpass_cluster_count\tfail_cluster_count\toverall_clustering_score\tuntrimmed_cluster_size\tuntrimmed_cluster_distance\ttrimmed_cluster_size\ttrimmed_cluster_median\ttrimmed_cluster_mad\tconsensus_assembly_bases\tconsensus_assembly_unitigs\tconsensus_assembly_fully_resolved\tlibrary_ID\tsample\tassembly_date\tassembler" > {output.assembly_stats}
         autocycler table \
-            -a {input.assembly_dir} \
+            -a {assembly_dir} \
             -n {input.polished_consensus_assembly} | \
             awk -v library_ID={wildcards.library_ID} \
                 -v sample={wildcards.sample} \
