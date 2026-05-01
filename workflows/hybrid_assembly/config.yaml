@@ -14,7 +14,7 @@ fastp:
 
 filtlong:
   threads: 1
-  mem_gb: 8
+  mem_gb: 4
   runtime: 120
 
 autocycler:
