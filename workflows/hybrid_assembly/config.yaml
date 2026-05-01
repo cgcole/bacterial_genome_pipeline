@@ -8,8 +8,8 @@ threads: 16
 
 # Per-rule resources
 fastp:
-  threads: 4
-  mem_gb: 4
+  threads: 8
+  mem_gb: 1
   runtime: 120
 
 filtlong:
@@ -19,16 +19,16 @@ filtlong:
 
 autocycler:
   threads: 16
-  mem_gb: 32
+  mem_gb: 2
   runtime: 2880
 
 polypolish:
   threads: 16
-  mem_gb: 16
+  mem_gb: 1
   runtime: 360
 
 assembly_stats:
   threads: 2
-  mem_gb: 4
+  mem_gb: 2
   runtime: 60
 

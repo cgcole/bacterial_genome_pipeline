@@ -1,5 +1,5 @@
 samples: samples/hybrid_assembly/bioproject_hybrid_samples.csv
 reads_dir: raw_sequencing_reads
 threads: 2
-mem_gb: 3
+mem_total_gb: 2
 runtime: 240
