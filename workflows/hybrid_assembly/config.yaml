@@ -8,8 +8,8 @@ threads: 16
 
 # Per-rule resources
 fastp:
-  threads: 8
-  mem_gb: 8
+  threads: 4
+  mem_gb: 4
   runtime: 120
 
 filtlong:
