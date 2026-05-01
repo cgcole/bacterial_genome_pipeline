@@ -1,4 +1,5 @@
 #!/bin/bash
+#$ -S /bin/bash
 #$ -l s_vmem=4G  # or whatever resources you need
 #$ -l h_rt=12:00:00
 #$ -o logs/download.$TASK_ID.out
@@ -25,8 +26,8 @@ if [ -n "$SGE_TASK_ID" ]; then
         exit 1
     fi
 
-    IFS=',' read -r BioSample BioProject sample library_ID short_R1 short_R2 long_file \
-        < <(sed -n "$((SGE_TASK_ID + 1))p" "$SAMPLES")
+    line=$(sed -n "$((SGE_TASK_ID + 1))p" "$SAMPLES")
+    IFS=',' read -r BioSample BioProject sample library_ID short_R1 short_R2 long_file <<< "$line"
 
     if [ ! -f "${READS_DIR}/${long_file}" ]; then
         echo "Downloading long reads for $sample"
