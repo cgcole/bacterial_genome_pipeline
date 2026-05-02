@@ -8,13 +8,13 @@ threads: 16
 
 # Per-rule resources
 fastp:
-  threads: 8
-  mem_gb: 2
+  threads: 4
+  mem_gb: 4
   runtime: 7200
 
 filtlong:
   threads: 1
-  mem_gb: 4
+  mem_gb: 6
   runtime: 7200
 
 autocycler:
