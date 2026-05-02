@@ -4,6 +4,9 @@ import pandas as pd
 import glob
 import os
 
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+
 # ── Load samples ─────────────────────────────────────────────────────────────
 samples = pd.concat([
     pd.read_csv(sample_file, usecols=["sample", "library_ID", "short_R1_filename", "short_R2_filename", "long_filename"])
