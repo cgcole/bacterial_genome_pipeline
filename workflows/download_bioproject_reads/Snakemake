@@ -1,5 +1,9 @@
 import pandas as pd
 import os
+import os
+
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 
 # ── Config ───────────────────────────────────────────────────────────────────
 configfile: "workflows/download_bioproject_reads/config.yaml"
