@@ -2,6 +2,7 @@
 samples_dir: samples/hybrid_assembly
 reads_dir: raw_sequencing_reads
 results_dir: results
+plassembler_db: /home/cgcole/miniforge3/envs/bacterial_genome_pipeline/plassembler_db
 
 # Default threads per job
 threads: 16
@@ -18,8 +19,8 @@ filtlong:
   runtime: 7200
 
 autocycler:
-  threads: 16
-  mem_gb: 6
+  threads: 12
+  mem_gb: 8
   runtime: 172800
 
 polypolish:
@@ -31,4 +32,3 @@ assembly_stats:
   threads: 2
   mem_gb: 2
   runtime: 3600
-
