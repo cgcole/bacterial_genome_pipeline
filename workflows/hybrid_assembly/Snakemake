@@ -87,7 +87,6 @@ rule filtlong_qc_long_reads:
 rule autocycler_hybrid_assembly:
     conda: "../../envs/environment.yaml"
     threads: config["autocycler"]["threads"]
-    plassembler_db: config["plassembler_db"]
     resources:
         mem_gb=config["autocycler"]["mem_gb"],
         runtime=config["autocycler"]["runtime"]
