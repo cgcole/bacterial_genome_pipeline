@@ -19,7 +19,7 @@ filtlong:
 
 autocycler:
   threads: 16
-  mem_gb: 4
+  mem_gb: 6
   runtime: 172800
 
 polypolish:

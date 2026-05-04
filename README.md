@@ -45,29 +45,7 @@ NSAMPLES=$(( $(wc -l < samples.csv) - 1 ))
 qsub -t 1-${NSAMPLES} download_reads.sh
 ```
 
-### Assembling genomes with Snakemake
-```bash
-snakemake --cores x
-```
-
-### Assembling genomes on a cluster
-```bash
-snakemake \
-    --executor slurm \
-    --default-resources slurm_partition=general mem_mb=16000 runtime=120 \
-    --jobs 100
-```
-
 ## Running the pipeline
-
-### Parameters you may want to adjust:
-
-| Parameter | What it does | Default |
-|-----------|-------------|---------|
-| `--jobs` | Max number of jobs running simultaneously | 50 |
-| `mem_gb` | Memory per slot (GB) | 4 |
-| `runtime` | Max time per job (HH:MM:SS) | 12:00:00 |
-| `{threads}` | Threads per job, set in config.yaml | 4 |
 
 ### Real run on the HPC cluster:
 snakemake \
@@ -77,11 +55,21 @@ snakemake \
   --jobs 10 \
   --latency-wait 60 \
   --use-conda \
-  --conda-base-path /home/cgcole/miniforge3
+  --conda-base-path /home/cgcole/miniforge3 \
   -n  # remove this -n for real run
+
+  ### Parameters you may want to adjust:
+
+| Parameter | What it does | Default |
+|-----------|-------------|---------|
+| `--jobs` | Max number of jobs running simultaneously | 50 |
+| `mem_gb` | Memory per slot (GB) | 4 |
+| `runtime` | Max time per job (HH:MM:SS) | 12:00:00 |
+| `{threads}` | Threads per job, set in config.yaml | 4 |
 
 ### Real run locally (laptop/desktop):
 snakemake \
   --snakefile workflow/Snakefile \
   --cores 8 \
-  --use-conda
+  --use-conda \
+  -n  # remove this -n for real run
