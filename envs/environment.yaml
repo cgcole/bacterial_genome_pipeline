@@ -25,6 +25,5 @@ dependencies:
   - coincbc>=2.10.13
   - nextpolish>=1.4.1            # https://github.com/Nextomics/NextPolish
   - minimap2>=2.28               # https://github.com/lh3/minimap2
-  - minipolish>=0.2.0            # https://github.com/rrwick/Minipolish
-  - nextpolish>=1.4.1            # https://github.com/Nextomics/NextPolish
   - racon>=1.5.0                 # https://github.com/lbcb-sci/racon
+  - myloasm>=0.5.1  # https://github.com/malabz/myloasm
