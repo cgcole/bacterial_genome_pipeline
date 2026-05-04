@@ -73,9 +73,11 @@ snakemake \
 snakemake \
   --snakefile workflows/hybrid_assembly/Snakemake \
   --executor cluster-generic \
-  --cluster-generic-submit-cmd "qsub -S /bin/bash -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime}:00 -o logs/{rule}.out -j y" \
-  --jobs 71 \
+  --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.out -j y" \
+  --jobs 10 \
   --latency-wait 60 \
+  --use-conda \
+  --conda-base-path /home/cgcole/miniforge3
   -n  # remove this -n for real run
 
 ### Real run locally (laptop/desktop):
