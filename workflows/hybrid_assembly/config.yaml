@@ -25,7 +25,7 @@ autocycler:
 
 polypolish:
   threads: 16
-  mem_gb: 3
+  mem_gb: 5
   runtime: 21600
 
 assembly_stats:
