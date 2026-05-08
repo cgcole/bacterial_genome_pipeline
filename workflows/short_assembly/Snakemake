@@ -1,0 +1,86 @@
+configfile: "workflows/short_assembly/config.yaml"
+
+import pandas as pd
+import glob
+import os
+
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+
+# ── Load samples ─────────────────────────────────────────────────────────────
+samples = pd.concat([
+    pd.read_csv(sample_file, usecols=["sample", "library_ID", "short_R1_filename", "short_R2_filename"])
+    for sample_file in glob.glob("samples/short_assembly/*.csv")
+])
+
+# ── Config variables ──────────────────────────────────────────────────────────
+READS_DIR = config["reads_dir"]
+RESULTS_DIR = config["results_dir"]
+
+# ── Target rule ───────────────────────────────────────────────────────────────
+rule all:
+    input:
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"), zip,
+               library_ID=samples["library_ID"], sample=samples["sample"]),
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"), zip,
+               library_ID=samples["library_ID"], sample=samples["sample"]),
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"), zip,
+               library_ID=samples["library_ID"], sample=samples["sample"]),
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json"), zip,
+               library_ID=samples["library_ID"], sample=samples["sample"]),
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Unicycler/assembly.fasta"), zip,
+               library_ID=samples["library_ID"], sample=samples["sample"])
+
+# ── QC ────────────────────────────────────────────────────────────────────────
+rule fastp_qc_short_reads:
+    threads: config["fastp"]["threads"]
+    resources:
+        mem_gb=config["fastp"]["mem_gb"],
+        runtime=config["fastp"]["runtime"]
+    conda: "../../envs/environment.yaml"
+    input:
+        r1_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R1_filename"].values[0]),
+        r2_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R2_filename"].values[0])
+    output:
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"),
+        r1_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_unpaired.fastq.gz"),
+        r2_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_unpaired.fastq.gz"),
+        html=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"),
+        json=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp.log")
+    shell:
+        """
+        fastp \
+            --in1 {input.r1_reads} --in2 {input.r2_reads} \
+            --out1 {output.r1_clean} --out2 {output.r2_clean} \
+            --unpaired1 {output.r1_unpaired} --unpaired2 {output.r2_unpaired} \
+            --html {output.html} \
+            --json {output.json} \
+            --thread {threads} \
+              2> {log}
+        """
+
+# ── Assembly ──────────────────────────────────────────────────────────────────
+rule unicycler_short_assembly:
+    conda: "../../envs/environment.yaml"
+    threads: config["unicycler"]["threads"]
+    resources:
+        mem_gb=config["unicycler"]["mem_gb"],
+        runtime=config["unicycler"]["runtime"]
+    input:
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz")
+    output:
+        assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Unicycler/assembly.fasta")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_Unicycler.log")
+    shell:
+        """
+        unicycler \
+            -1 {input.r1_clean} \
+            -2 {input.r2_clean} \
+            -o $(dirname {output.assembly}) \
+            --threads {threads} \
+            --mode normal \
+            2>> {log}
+        """

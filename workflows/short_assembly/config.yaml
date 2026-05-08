@@ -1,0 +1,19 @@
+# Input/output
+samples_dir: samples/short_assembly
+reads_dir: raw_sequencing_reads
+results_dir: results
+
+# Default threads per job
+threads: 16
+
+# Per-rule resources
+fastp:
+  threads: 4
+  mem_gb: 4
+  runtime: 7200
+
+unicycler:
+  threads: 16
+  mem_gb: 4
+  runtime: 14400
+
