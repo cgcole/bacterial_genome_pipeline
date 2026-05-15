@@ -1,5 +1,5 @@
 hybrid_samples: samples/hybrid_assembly/bioproject_hybrid_samples.csv
-long_samples: samples/short_assembly/bioproject_long_samples.csv
+long_samples: samples/long_assembly/bioproject_long_samples.csv
 short_samples: samples/short_assembly/bioproject_short_samples.csv
 reads_dir: raw_sequencing_reads
 threads: 2
