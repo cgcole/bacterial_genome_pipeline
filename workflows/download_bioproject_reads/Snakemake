@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import os
 
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -13,107 +12,75 @@ hybrid_samples = pd.read_csv(config["hybrid_samples"])
 short_samples = pd.read_csv(config["short_samples"])
 long_samples = pd.read_csv(config["long_samples"])
 
-hybrid_long_accessions = hybrid_samples["long_filename"].str.replace(".fastq.gz", "", regex=False)
-hybrid_short_accessions = hybrid_samples["short_R1_filename"].str.replace("_1.fastq.gz", "", regex=False)
+# ── Combine and deduplicate upfront ──────────────────────────────────────────
+long_accessions = (
+    pd.concat([
+        hybrid_samples["long_filename"],
+        long_samples["long_filename"]
+    ])
+    .str.replace(".fastq.gz", "", regex=False)
+    .drop_duplicates()
+    .tolist()
+)
 
-long_accessions = long_samples["long_filename"].str.replace(".fastq.gz", "", regex=False)
-short_accessions = short_samples["short_R1_filename"].str.replace("_1.fastq.gz", "", regex=False)
-
-
+short_accessions = (
+    pd.concat([
+        hybrid_samples["short_R1_filename"],
+        short_samples["short_R1_filename"]
+    ])
+    .str.replace("_1.fastq.gz", "", regex=False)
+    .drop_duplicates()
+    .tolist()
+)
 
 # ── Target rule ──────────────────────────────────────────────────────────────
 rule all:
     input:
-        expand(os.path.join(READS_DIR, "{hybrid_long_accessions}.fastq.gz"), hybrid_long_accessions=hybrid_long_accessions),
-        expand(os.path.join(READS_DIR, "{hybrid_short_accessions}_1.fastq.gz"), hybrid_short_accessions=hybrid_short_accessions),
-        expand(os.path.join(READS_DIR, "{hybrid_short_accessions}_2.fastq.gz"), hybrid_short_accessions=hybrid_short_accessions),
-        expand(os.path.join(READS_DIR, "{long_accessions}.fastq.gz"), long_accessions=long_accessions),
-        expand(os.path.join(READS_DIR, "{short_accessions}_1.fastq.gz"), short_accessions=short_accessions),
-        expand(os.path.join(READS_DIR, "{short_accessions}_2.fastq.gz"), short_accessions=short_accessions)
-
-# ── Download hybrid long reads ───────────────────────────────────────────────────────
-rule download_hybrid_long_reads:
-    conda: "../../envs/environment.yaml"
-    output:
-        os.path.join(READS_DIR, "{hybrid_long_accessions}.fastq.gz")
-    wildcard_constraints:
-        hybrid_long_accessions="[A-Z0-9]+"  # only uppercase letters and numbers, no underscores
-    threads: config["threads"]
-    resources:
-        mem_gb=config["mem_gb"],
-        runtime=config["runtime"]
-    log:
-        "logs/reads/{hybrid_long_accessions}_long.log"
-    shell:
-        """
-        fasterq-dump {wildcards.hybrid_long_accessions} \
-            --outdir {READS_DIR} \
-            --threads {threads} 2>> {log} && \
-        pigz -p {threads} {READS_DIR}/{wildcards.hybrid_long_accessions}.fastq 2>> {log}
-        """
-
-
-# ── Download hybrid short reads ──────────────────────────────────────────────────────
-rule download_hybrid_short_reads:
-    conda: "../../envs/environment.yaml"
-    output:
-        r1=os.path.join(READS_DIR, "{hybrid_short_accessions}_1.fastq.gz"),
-        r2=os.path.join(READS_DIR, "{hybrid_short_accessions}_2.fastq.gz")
-    threads: config["threads"]
-    resources:
-        mem_gb=config["mem_gb"],
-        runtime=config["runtime"]
-    log:
-        "logs/reads/{hybrid_short_accessions}_short.log"
-    shell:
-        """
-        fasterq-dump --split-files {wildcards.hybrid_short_accessions} \
-            --outdir {READS_DIR} \
-            --threads {threads} 2>> {log} && \
-        pigz -p {threads} \
-            {READS_DIR}/{wildcards.hybrid_short_accessions}_1.fastq \
-            {READS_DIR}/{wildcards.hybrid_short_accessions}_2.fastq 2>> {log}
-        """
+        expand(os.path.join(READS_DIR, "{long_accession}.fastq.gz"), long_accession=long_accessions),
+        expand(os.path.join(READS_DIR, "{short_accession}_1.fastq.gz"), short_accession=short_accessions),
+        expand(os.path.join(READS_DIR, "{short_accession}_2.fastq.gz"), short_accession=short_accessions)
 
 # ── Download long reads ───────────────────────────────────────────────────────
 rule download_long_reads:
     conda: "../../envs/environment.yaml"
     output:
-        os.path.join(READS_DIR, "{long_accessions}.fastq.gz")
+        os.path.join(READS_DIR, "{long_accession}.fastq.gz")
     wildcard_constraints:
-        long_accessions="[A-Z0-9]+"  # only uppercase letters and numbers, no underscores
+        long_accession="[A-Z0-9]+"
     threads: config["threads"]
     resources:
         mem_gb=config["mem_gb"],
         runtime=config["runtime"]
     log:
-        "logs/reads/{long_accessions}_long.log"
+        "logs/reads/{long_accession}_long.log"
     shell:
         """
-        fasterq-dump {wildcards.long_accessions} \
+        fasterq-dump {wildcards.long_accession} \
             --outdir {READS_DIR} \
             --threads {threads} 2>> {log} && \
-        pigz -p {threads} {READS_DIR}/{wildcards.long_accessions}.fastq 2>> {log}
+        pigz -p {threads} {READS_DIR}/{wildcards.long_accession}.fastq 2>> {log}
         """
 
 # ── Download short reads ──────────────────────────────────────────────────────
 rule download_short_reads:
     conda: "../../envs/environment.yaml"
     output:
-        r1=os.path.join(READS_DIR, "{short_accessions}_1.fastq.gz"),
-        r2=os.path.join(READS_DIR, "{short_accessions}_2.fastq.gz")
+        r1=os.path.join(READS_DIR, "{short_accession}_1.fastq.gz"),
+        r2=os.path.join(READS_DIR, "{short_accession}_2.fastq.gz")
+    wildcard_constraints:
+        short_accession="[A-Z0-9]+"
     threads: config["threads"]
     resources:
         mem_gb=config["mem_gb"],
         runtime=config["runtime"]
     log:
-        "logs/reads/{short_accessions}_short.log"
+        "logs/reads/{short_accession}_short.log"
     shell:
         """
-        fasterq-dump --split-files {wildcards.short_accessions} \
+        fasterq-dump --split-files {wildcards.short_accession} \
             --outdir {READS_DIR} \
             --threads {threads} 2>> {log} && \
         pigz -p {threads} \
-            {READS_DIR}/{wildcards.short_accessions}_1.fastq \
-            {READS_DIR}/{wildcards.short_accessions}_2.fastq 2>> {log}
+            {READS_DIR}/{wildcards.short_accession}_1.fastq \
+            {READS_DIR}/{wildcards.short_accession}_2.fastq 2>> {log}
         """
