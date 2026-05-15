@@ -20,15 +20,15 @@ RESULTS_DIR = config["results_dir"]
 # ── Target rule ───────────────────────────────────────────────────────────────
 rule all:
     input:
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_fastp_report.html"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_fastp_report.json"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Unicycler/assembly.fasta"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/assembly/Unicycler/assembly.fasta"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"])
 
 # ── QC ────────────────────────────────────────────────────────────────────────
@@ -42,13 +42,13 @@ rule fastp_qc_short_reads:
         r1_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R1_filename"].values[0]),
         r2_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R2_filename"].values[0])
     output:
-        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
-        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"),
-        r1_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_unpaired.fastq.gz"),
-        r2_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_unpaired.fastq.gz"),
-        html=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"),
-        json=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp.log")
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"),
+        r1_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R1_unpaired.fastq.gz"),
+        r2_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R2_unpaired.fastq.gz"),
+        html=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_fastp_report.html"),
+        json=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_fastp_report.json")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_fastp.log")
     shell:
         """
         fastp \
@@ -69,11 +69,11 @@ rule unicycler_short_assembly:
         mem_gb=config["unicycler"]["mem_gb"],
         runtime=config["unicycler"]["runtime"]
     input:
-        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
-        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz")
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz")
     output:
-        assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Unicycler/assembly.fasta")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_Unicycler.log")
+        assembly=os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/assembly/Unicycler/assembly.fasta")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/short_assembly/{sample}/logs/{sample}_Unicycler.log")
     shell:
         """
         unicycler \

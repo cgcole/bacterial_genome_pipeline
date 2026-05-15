@@ -20,21 +20,21 @@ RESULTS_DIR = config["results_dir"]
 # ── Target rule ───────────────────────────────────────────────────────────────
 rule all:
     input:
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_fastp_report.html"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_fastp_report.json"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_polypolish.fasta"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_polypolish.fasta"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"]),
-        expand(os.path.join(RESULTS_DIR, "{library_ID}/{sample}/stats/autocycler_assembly_metrics.tsv"), zip,
+        expand(os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/stats/autocycler_assembly_metrics.tsv"), zip,
                library_ID=samples["library_ID"], sample=samples["sample"])
 
 # ── QC ────────────────────────────────────────────────────────────────────────
@@ -48,13 +48,13 @@ rule fastp_qc_short_reads:
         r1_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R1_filename"].values[0]),
         r2_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "short_R2_filename"].values[0])
     output:
-        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
-        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"),
-        r1_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_unpaired.fastq.gz"),
-        r2_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_unpaired.fastq.gz"),
-        html=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.html"),
-        json=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp_report.json")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_fastp.log")
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz"),
+        r1_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R1_unpaired.fastq.gz"),
+        r2_unpaired=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R2_unpaired.fastq.gz"),
+        html=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_fastp_report.html"),
+        json=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_fastp_report.json")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_fastp.log")
     shell:
         """
         fastp \
@@ -76,8 +76,8 @@ rule filtlong_qc_long_reads:
     input:
         long_reads=lambda wildcards: os.path.join(READS_DIR, samples.loc[samples["sample"] == wildcards.sample, "long_filename"].values[0])
     output:
-        long_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_Filtlong.log")
+        long_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_Filtlong.log")
     shell:
         """
         (filtlong --min_length 1000 --keep_percent 95 {input.long_reads} | gzip > {output.long_clean}) 2> {log}
@@ -91,10 +91,10 @@ rule autocycler_hybrid_assembly:
         mem_gb=config["autocycler"]["mem_gb"],
         runtime=config["autocycler"]["runtime"]
     input:
-        long_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz")
+        long_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Filtlong/{sample}_long_clean.fastq.gz")
     output:
-        assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_Autocycler.log")
+        assembly=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_Autocycler.log")
     shell:
         """
         set -e
@@ -116,19 +116,19 @@ rule autocycler_hybrid_assembly:
         genome_size=$(autocycler helper genome_size --reads "$reads" --threads "$threads")
 
         # Step 1: subsample
-        mkdir -p {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler
+        mkdir -p {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler
         autocycler subsample \
             --reads "$reads" \
-            --out_dir {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/subsampled_reads \
+            --out_dir {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/subsampled_reads \
             --genome_size "$genome_size" 2>> {log}
 
         # Step 2: assemble each subsampled file
-        mkdir -p {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies
+        mkdir -p {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies
         for assembler in raven myloasm miniasm flye metamdbg necat nextdenovo plassembler canu; do
             for i in 01 02 03 04; do
                 autocycler helper "$assembler" \
-                    --reads {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/subsampled_reads/sample_"$i".fastq \
-                    --out_prefix {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies/"$assembler"_"$i" \
+                    --reads {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/subsampled_reads/sample_"$i".fastq \
+                    --out_prefix {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies/"$assembler"_"$i" \
                     --threads "$threads" \
                     --genome_size "$genome_size" \
                     --min_depth_rel 0.1
@@ -137,36 +137,36 @@ rule autocycler_hybrid_assembly:
 
         # Give circular contigs from Plassembler extra clustering weight
         shopt -s nullglob
-        for f in {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies/plassembler*.fasta; do
+        for f in {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies/plassembler*.fasta; do
             perl -i -pe 's/circular=True/circular=True Autocycler_cluster_weight=3/' "$f"
         done
 
         # Give contigs from Canu and Flye extra consensus weight
-        for f in {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies/canu*.fasta \
-                  {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies/flye*.fasta; do
+        for f in {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies/canu*.fasta \
+                  {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies/flye*.fasta; do
             perl -i -pe 's/^(>.*)$/$1 Autocycler_consensus_weight=2/' "$f"
         done
         shopt -u nullglob
 
         # Step 3: compress
         autocycler compress \
-            -i {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/input_assemblies \
-            -a {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/autocycler_out 2>> {log}
+            -i {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies \
+            -a {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out 2>> {log}
 
         # Step 4: cluster
         autocycler cluster \
-            -a {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/autocycler_out 2>> {log}
+            -a {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out 2>> {log}
 
         # Steps 5 and 6: trim and resolve
-        for c in {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*; do
+        for c in {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*; do
             autocycler trim -c "$c" 2>> {log}
             autocycler resolve -c "$c" 2>> {log}
         done
 
         # Step 7: combine
         autocycler combine \
-            -a {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/autocycler_out \
-            -i {RESULTS_DIR}/{wildcards.library_ID}/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> {log}
+            -a {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out \
+            -i {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> {log}
         """
 
 # ── Polishing ─────────────────────────────────────────────────────────────────
@@ -177,16 +177,16 @@ rule polypolish_short_read_polishing:
         mem_gb=config["polypolish"]["mem_gb"],
         runtime=config["polypolish"]["runtime"]
     input:
-        assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"),
-        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
-        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz")
+        assembly=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"),
+        r1_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R1_clean.fastq.gz"),
+        r2_clean=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/fastp/{sample}_R2_clean.fastq.gz")
     output:
-        r1_alignment=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_R1_alignment.sam"),
-        r2_alignment=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_R2_alignment.sam"),
-        r1_alignment_filtered=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_R1_alignment_filtered.sam"),
-        r2_alignment_filtered=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_R2_alignment_filtered.sam"),
-        polished_consensus_assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_polypolish.fasta")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_Polypolish.log")
+        r1_alignment=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_R1_alignment.sam"),
+        r2_alignment=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_R2_alignment.sam"),
+        r1_alignment_filtered=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_R1_alignment_filtered.sam"),
+        r2_alignment_filtered=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_R2_alignment_filtered.sam"),
+        polished_consensus_assembly=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_polypolish.fasta")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_Polypolish.log")
     shell:
         """
         bwa-mem2 index {input.assembly}
@@ -209,11 +209,11 @@ rule assembly_stats:
         mem_gb=config["assembly_stats"]["mem_gb"],
         runtime=config["assembly_stats"]["runtime"]
     input:
-        consensus=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"),
-        polished_consensus_assembly=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/qc/Polypolish/{sample}_polypolish.fasta")
+        consensus=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/assembly/Autocycler/autocycler_out/consensus_assembly.fasta"),
+        polished_consensus_assembly=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/qc/Polypolish/{sample}_polypolish.fasta")
     output:
-        assembly_stats=os.path.join(RESULTS_DIR, "{library_ID}/{sample}/stats/autocycler_assembly_metrics.tsv")
-    log: os.path.join(RESULTS_DIR, "{library_ID}/{sample}/logs/{sample}_assembly_stats.log")
+        assembly_stats=os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/stats/autocycler_assembly_metrics.tsv")
+    log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_assembly_stats.log")
     shell:
         """
         assembly_dir=$(dirname $(dirname {input.consensus}))
@@ -228,5 +228,6 @@ rule assembly_stats:
                 -v sample={wildcards.sample} \
                 -v assembly_date="$assembly_date" \
                 -v assembler="$assembler_version" \
-                '{{print $0"\t"library_ID"\t"sample"\t"assembly_date"\t"assembler}}' >> {output.assembly_stats} 2>> {log}
+                -v assembly_type=hybrid
+                '{{print $0"\t"library_ID"\t"sample"\t"assembly_date"\t"assembler"\t"assembly_type}}' >> {output.assembly_stats} 2>> {log}
         """
