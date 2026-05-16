@@ -15,5 +15,5 @@ fastp:
 unicycler:
   threads: 16
   mem_gb: 4
-  runtime: 14400
+  runtime: 43200
 
