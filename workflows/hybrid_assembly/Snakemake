@@ -228,6 +228,6 @@ rule assembly_stats:
                 -v sample={wildcards.sample} \
                 -v assembly_date="$assembly_date" \
                 -v assembler="$assembler_version" \
-                -v assembly_type=hybrid
+                -v assembly_type=hybrid \
                 '{{print $0"\t"library_ID"\t"sample"\t"assembly_date"\t"assembler"\t"assembly_type}}' >> {output.assembly_stats} 2>> {log}
         """
