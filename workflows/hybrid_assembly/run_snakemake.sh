@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -S /bin/bash
-#$ -pe def_slot 2
+#$ -pe def_slot 3
 #$ -l s_vmem=3G
 #$ -l h_rt=72:00:00
 #$ -N snakemake_master
