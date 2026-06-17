@@ -35,12 +35,17 @@ python scripts/bioproject_metadata_parser.py PRJNAXXXXXX
 ### Downloading raw sequencing reads for BioProjects
 ```bash
 bash scripts/download_bioproject_reads.sh --samples samples/hybrid_assembly/bioproject_hybrid_samples.csv --threads 4
+
 ```
 
 ### Downloading raw sequencing reads for BioProjects on a cluster
 ```bash
 mkdir -p logs raw_sequencing_reads
 NSAMPLES=$(( $(wc -l < samples.csv) - 1 ))
+qsub -t 1-${NSAMPLES} scripts/download_bioproject_reads.sh
+
+mkdir -p logs raw_sequencing_reads
+NSAMPLES=$(( $(wc -l < samples/short_assembly/bioproject_short_samples.csv) - 1 ))
 qsub -t 1-${NSAMPLES} scripts/download_bioproject_reads.sh
 ```
 
@@ -74,40 +79,13 @@ snakemake \
   -n  # remove this -n for real run
 
 
-nohup snakemake \
-    --snakefile workflows/hybrid_assembly/Snakemake \
-    --executor cluster-generic \
-    --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
-    --jobs 10 \
-    --latency-wait 60 \
-    --use-conda \
-    --conda-base-path /home/cgcole/miniforge3 \
-    > logs/snakemake.log 2>&1 &
-
-
-    nohup snakemake \
-    --snakefile workflows/short_assembly/Snakemake \
-    --executor cluster-generic \
-    --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
-    --jobs 20 \
-    --latency-wait 60 \
-    --use-conda \
-    --conda-base-path /home/cgcole/miniforge3 \
-    > logs/snakemake.log 2>&1 &
 
 
 
-nohup snakemake \
-    --snakefile workflows/hybrid_assembly/Snakemake \
-    --executor cluster-generic \
-    --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
-    --jobs 10 \
-    --max-jobs-per-second 0.5 \
-    --max-status-checks-per-second 1 \
-    --latency-wait 60 \
-    --use-conda \
-    --conda-base-path /home/cgcole/miniforge3 \
-    > logs/snakemake.log 2>&1 &
+
+
+
+
 
 nohup snakemake \
     --snakefile workflows/hybrid_assembly/Snakemake \
@@ -115,8 +93,63 @@ nohup snakemake \
     --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:\$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
     --jobs 10 \
     --max-jobs-per-second 1 \
-    --max-status-checks-per-second 1 \
+    --max-status-checks-per-second .1 \
     --latency-wait 60 \
     --use-conda \
     --conda-base-path /home/cgcole/miniforge3 \
-    > logs/snakemake.log 2>&1 &
+    --keep-going \
+    --rerun-incomplete \
+    > logs/snakemake_hybrid_assembly.log 2>&1 &
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+nohup snakemake \
+    --snakefile workflows/short_assembly/Snakemake \
+    --executor cluster-generic \
+    --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:\$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
+    --jobs 10 \
+    --max-jobs-per-second 1 \
+    --max-status-checks-per-second .1 \
+    --latency-wait 60 \
+    --use-conda \
+    --conda-base-path /home/cgcole/miniforge3 \
+    --keep-going \
+    > logs/snakemake_short_assembly.log 2>&1 &
+
+
+
+
+
+
+
+
+
+nohup snakemake \
+    --snakefile workflows/download_bioproject_reads/Snakemake \
+    --executor cluster-generic \
+    --cluster-generic-submit-cmd "qsub -S /bin/bash -cwd -v PATH=/home/cgcole/miniforge3/bin:/home/cgcole/miniforge3/condabin:\$PATH,OPENBLAS_NUM_THREADS=1,OMP_NUM_THREADS=1 -pe def_slot {threads} -l s_vmem={resources.mem_gb}G -l h_rt={resources.runtime} -o logs/{rule}.{jobid}.out -j y" \
+    --jobs 10 \
+    --max-jobs-per-second 1 \
+    --max-status-checks-per-second .1 \
+    --latency-wait 60 \
+    --use-conda \
+    --conda-base-path /home/cgcole/miniforge3 \
+    --keep-going \
+    --rerun-incomplete \
+    > logs/snakemake_download_bioproject_reads.log 2>&1 &
