@@ -80,7 +80,7 @@ rule filtlong_qc_long_reads:
     log: os.path.join(RESULTS_DIR, "{library_ID}/hybrid_assembly/{sample}/logs/{sample}_Filtlong.log")
     shell:
         """
-        (filtlong --min_length 1000 --keep_percent 95 {input.long_reads} | gzip > {output.long_clean}) 2> {log}
+        (filtlong --min_length 1000 --keep_percent 95 {input.long_reads} | pigz -p {threads} > {output.long_clean}) 2> {log}
         """
 
 # ── Assembly ──────────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ rule autocycler_hybrid_assembly:
 
         # Step 2: assemble each subsampled file
         mkdir -p {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/input_assemblies
-        for assembler in raven myloasm miniasm flye metamdbg necat nextdenovo plassembler canu; do
+        for assembler in raven myloasm miniasm flye metamdbg necat nextdenovo plassembler canu ilesta; do
             for i in 01 02 03 04; do
                 autocycler helper "$assembler" \
                     --reads {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/subsampled_reads/sample_"$i".fastq \
