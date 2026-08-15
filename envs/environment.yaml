@@ -9,7 +9,7 @@ dependencies:
   - pigz>=2.8
   - fastp>=1.3.6
   - filtlong>=0.3.1
-  - autocycler>=0.6.3
+  - autocycler>=0.7.0
   - raven-assembler>=1.8.3       # https://github.com/lbcb-sci/raven
   - canu>=2.3                    # https://github.com/marbl/canu
   - flye>=2.9.6                  # https://github.com/mikolmogorov/Flye
@@ -28,3 +28,4 @@ dependencies:
   - racon>=1.5.0                 # https://github.com/lbcb-sci/racon
   - myloasm>=0.6.0  # https://github.com/malabz/myloasm
   - unicycler>=0.5.1
+  - ilesta>=1.2.1

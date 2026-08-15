@@ -166,7 +166,8 @@ rule autocycler_hybrid_assembly:
         # Step 7: combine
         autocycler combine \
             -a {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out \
-            -i {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> {log}
+            -i {RESULTS_DIR}/{wildcards.library_ID}/hybrid_assembly/{wildcards.sample}/assembly/Autocycler/autocycler_out/clustering/qc_pass/cluster_*/5_final.gfa 2>> {log} \
+            -r "$reads"
         """
 
 # ── Polishing ─────────────────────────────────────────────────────────────────
